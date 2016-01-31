@@ -1,0 +1,18 @@
+citHeader("To cite the distance.sample.size package in publications please use both references below. The first reference is to the package, the second describes the statistical thinking on which the package is based.")
+
+citEntry(entry="misc",
+   author="Robert Graham Clark",
+   year=2015,
+   title="distance.sample.size: Calculates Study Size Required for Distance Sampling.",
+   note="R package version 0.0",
+   textVersion="R. G. Clark (2016) \"distance.sample.size: Calculates Study Size Required for Distance Sampling\". R package version 0.0." )
+
+citEntry(entry="article",
+  year=2016,
+  author=as.person("Robert Graham Clark [aut]"),
+  title = "Statistical efficiency in distance sampling",
+  journal="PLoS One",
+  note="forthcoming",
+  textVersion="Clark, R.G. (2016) Statistical efficiency in distance sampling. PLoS One, forthcoming"
+)
+   
