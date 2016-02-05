@@ -60,7 +60,7 @@ distance.sample.size <- function(cv.pct,N=Inf,overdispersion=2,detection.functio
     required.sample.size <- NA
     warning("Not possible to achieve the target coefficient of variation. Note that even if the region is fully covered and all objects are detected, the distance sampling estimator has positive variance due to estimation of detection parameters.")
   }
-  required.P <- required.sample.size / N
+  required.P <- required.sample.size / N / mean.detection.prob.value
   penalty <- DS.penalty(detection.function=detection.function,theta=theta,w=w,P=required.P)
   if(N==Inf) required.P <- NA
   c( required.sample.size=required.sample.size , required.P=required.P , "penalty when sampling fraction assumed to be small"=penalty0 ,
