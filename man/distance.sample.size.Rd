@@ -6,7 +6,9 @@
 \usage{
 distance.sample.size(cv.pct, N = Inf, overdispersion = 2,
   detection.function, theta, mean.detection.prob.value,
-  shape.hazard = c("verynarrow", "narrow", "wide"), w, stop = F)
+  shape.hazard = c("verynarrow", "narrow", "wide"), w, pilot.cv.pct, pilot.N,
+  pilot.P, pilot.detections, pilot.theta, pilot.w = pilot.w,
+  pilot.detection.function, stop = F)
 }
 \arguments{
 \item{cv.pct}{The required cv expressed as a percentage. For example, use cv=15 for a coefficient of variation of 15\%.}
@@ -31,6 +33,24 @@ If shape.hazard is supplied, detection.function should be "hazard", theta need n
 
 \item{w}{The maximum range of observation. Objects at distance greater than w from the observer are assumed to never be recorded.}
 
+\item{pilot.cv.pct}{Optional. The CV achieved by a pilot study. Assumed to allow for the sampling fraction used, the variability due to unknown theta, and overdispersion.
+If supplied, pilot.detections and pilot.theta must also be provided. If pilot information is provided, it is used to estimate overdispersion
+(if overdispersion is missing)}
+
+\item{pilot.N}{Optional. The estimated abundance from the pilot study. Used to estimate overdispersion (if missing).}
+
+\item{pilot.P}{Optional. The proportion of the area of the region observable in the pilot study. Used to estimate overdispersion (if missing).
+If not supplied, it is inferred from the other pilot information.}
+
+\item{pilot.detections}{Optional. The number of detections from the pilot study. Used to estimate overdispersion (if missing).}
+
+\item{pilot.theta}{Optional. The estimated detection parameter/s from the pilot study.}
+
+\item{pilot.w}{Optional. The maximum range of observation in the pilot study. If missing, defaults to w.}
+
+\item{pilot.detection.function}{Optional. The detection function used for the pilot study. Only "halfnormal" and "hazard" (hazard rate) are supported at present.
+If not supplied, defaults to detection.function.}
+
 \item{stop}{Set to T to open a browser window (for debugging purposes)}
 }
 \value{
@@ -48,6 +68,9 @@ In this case, missing values are returned for the required sample size and cover
 }
 \examples{
 distance.sample.size(cv.pct=15,N=1000,detection.function="hazard",shape.hazard="narrow")
+distance.sample.size(cv.pct=15,N=1000,detection.function="halfnormal",theta=90,w=200,
+pilot.N=200,pilot.cv.pct=20,pilot.theta=90,pilot.w=200,
+pilot.detection.function="halfnormal",pilot.detections=63)
 }
 \references{
 Buckland S, Anderson D, Burnham K, Laake J and Borchers D (2001). Introduction to Distance Sampling: Estimating Abundance of Biological Populations. Oxford: Oxford University Press.

@@ -15,6 +15,17 @@
 #'                     If shape.hazard is supplied, detection.function should be "hazard", theta need not be supplied, and w need not be supplied as is set to 1
 #'                     (results in detection probabilities of 0.1 to 0.15 at w). All three options have an average detection rate of 0.6.
 #' @param w The maximum range of observation. Objects at distance greater than w from the observer are assumed to never be recorded.
+#' @param pilot.cv.pct Optional. The CV achieved by a pilot study. Assumed to allow for the sampling fraction used, the variability due to unknown theta, and overdispersion.
+#'                     If supplied, pilot.detections and pilot.theta must also be provided. If pilot information is provided, it is used to estimate overdispersion
+#'                     (if overdispersion is missing)
+#' @param pilot.N Optional. The estimated abundance from the pilot study. Used to estimate overdispersion (if missing).
+#' @param pilot.P Optional. The proportion of the area of the region observable in the pilot study. Used to estimate overdispersion (if missing).
+#'                         If not supplied, it is inferred from the other pilot information.
+#' @param pilot.detections Optional. The number of detections from the pilot study. Used to estimate overdispersion (if missing).
+#' @param pilot.theta Optional. The estimated detection parameter/s from the pilot study.
+#' @param pilot.w Optional. The maximum range of observation in the pilot study. If missing, defaults to w.
+#' @param pilot.detection.function Optional. The detection function used for the pilot study. Only "halfnormal" and "hazard" (hazard rate) are supported at present.
+#'                                 If not supplied, defaults to detection.function.
 #' @param stop Set to T to open a browser window (for debugging purposes)
 #' @details
 #' It may be impossible to achieve the target precision, even if the expected sample size is equal to its maximum possible value of N divided by the mean detection probability.
@@ -31,8 +42,12 @@
 #' Clark, R. G. (2016), "Statistical efficiency in distance sampling," PLoS One, forthcoming, www.plosone.org
 #' @examples
 #' distance.sample.size(cv.pct=15,N=1000,detection.function="hazard",shape.hazard="narrow")
+#' distance.sample.size(cv.pct=15,N=1000,detection.function="halfnormal",theta=90,w=200,
+#' pilot.N=200,pilot.cv.pct=20,pilot.theta=90,pilot.w=200,
+#' pilot.detection.function="halfnormal",pilot.detections=63)
 
-distance.sample.size <- function(cv.pct,N=Inf,overdispersion=2,detection.function,theta,mean.detection.prob.value,shape.hazard=c("verynarrow","narrow","wide"),w,stop=F){
+distance.sample.size <- function(cv.pct,N=Inf,overdispersion=2,detection.function,theta,mean.detection.prob.value,shape.hazard=c("verynarrow","narrow","wide"),w,
+                                 pilot.cv.pct,pilot.N,pilot.P,pilot.detections,pilot.theta,pilot.w=pilot.w,pilot.detection.function,stop=F){
   if(stop) browser()
   cv <- cv.pct / 100
   # assign values to theta if shape.hazard supplied
@@ -54,6 +69,15 @@ distance.sample.size <- function(cv.pct,N=Inf,overdispersion=2,detection.functio
   penalty0 <- DS.penalty(detection.function=detection.function,theta=theta,w=w,P=0)
   # calculate mean detection probability if not specified
   if(missing(mean.detection.prob.value)) mean.detection.prob.value <- calculate.mean.detection.prob(theta=theta,w=w,detection.function=detection.function)
+  # estimate overdispersion from pilot data, if pilot.cv.pct etc supplied
+  if(missing(overdispersion)&!missing(pilot.cv.pct)){
+    if(missing(pilot.detection.function)) pilot.detection.function <- detection.function
+    if(missing(pilot.w)) pilot.w <- w
+    pilot.mean.detection.prob.value <- calculate.mean.detection.prob(theta=pilot.theta,w=pilot.w,detection.function=pilot.detection.function)
+    if(missing(pilot.P)) pilot.P <- pilot.detections / pilot.N / pilot.mean.detection.prob.value
+    pilot.penalty <- DS.penalty(detection.function=pilot.detection.function,theta=pilot.theta,w=pilot.w,P=pilot.P)
+    overdispersion <- (pilot.cv.pct/100)^2 / pilot.penalty / ( 1/pilot.detections - 1/pilot.N )
+  }
   # Now calculate required sample size
   required.sample.size <- penalty0 / ( cv^2/overdispersion + 1/N )
   if(required.sample.size>(N*mean.detection.prob.value)){
@@ -64,5 +88,5 @@ distance.sample.size <- function(cv.pct,N=Inf,overdispersion=2,detection.functio
   penalty <- DS.penalty(detection.function=detection.function,theta=theta,w=w,P=required.P)
   if(N==Inf) required.P <- NA
   c( required.sample.size=required.sample.size , required.P=required.P , "penalty when sampling fraction assumed to be small"=penalty0 ,
-     "actual penalty"=penalty )
+     "actual penalty"=penalty , "overdispersion"=overdispersion )
 }
